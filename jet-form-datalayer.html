@@ -1,0 +1,93 @@
+<script>
+  (function() {
+    var origXMLHttpRequest = XMLHttpRequest;
+    XMLHttpRequest = function() {
+      var requestURL;
+      var requestMethod;
+      var requestBody;
+      var xhr = new origXMLHttpRequest();
+      var origOpen = xhr.open;
+      var origSend = xhr.send;
+      xhr.open = function(method, url) {
+        requestURL = url;
+        requestMethod = method;
+        return origOpen.apply(this, arguments);
+      };
+      xhr.send = function(data) {
+        if (requestURL.includes('?jet_form_builder_submit=submi')) {
+          xhr.addEventListener('load', function() {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                if (response.status === 'success' && (data instanceof FormData)) {
+                  requestBody = {};
+                  data.forEach(function(value, key) {
+                    if (!key.includes('captcha')) {
+                      requestBody[key] = value;
+                    }
+                  });
+                  window.dataLayer = window.dataLayer || [];
+                  dataLayer.push({
+                    event: 'jet_form_submit',
+                    form_id: requestBody['_jet_engine_booking_form_id'],
+                    inputs: requestBody
+                  });
+                }
+              }
+            }
+          });
+        }
+        return origSend.apply(this, arguments);
+      };
+      return xhr;
+    };
+  })();
+  document.addEventListener('submit', function(event) {
+    var form = event.target.closest('form.jet-form-builder.submit-type-reload');
+    var requiedError = false;
+    var formData = new FormData(form);
+    var inputValues = {};
+    formData.forEach(function(value, key) {
+      if (key) {
+        var inputField = form.querySelector('[name="' + key + '"]');
+        if (inputField) {
+          var isRequiredField = inputField.getAttribute('required');
+          if (isRequiredField) {
+            if (inputField.tagName === 'SELECT') {
+              var selectedOptionVal = inputField.options[inputField.selectedIndex].text;
+              if (!selectedOptionVal) {
+                errorRequired = true;
+              }
+            } else if ((inputField.getAttribute('type') === 'email') && (!value || !value.includes('@'))) {
+              errorRequired = true;
+            } else if (!value) {
+              errorRequired = true;
+            }
+          }
+        }
+      }
+      inputValues[key] = value;
+    });
+    var requiredCheckboxesRadio = form.querySelectorAll('input[type="radio"][required="required"],input[type="checkbox"][required="required"]');
+    var filelsName = [];
+    requiredCheckboxesRadio.forEach(function(input) {
+      var name = input.getAttribute('name');
+      if (!filelsName.includes(name)) {
+        filelsName.push(name);
+      }
+    });
+    filelsName.forEach(function(name) {
+      if (!form.querySelector('input:checked[name="' + name + '"]')) {
+        requiedError = true;
+      }
+    })
+    if (!requiedError) {
+      window.dataLayer = window.dataLayer || [];
+      dataLayer.push({
+        event: 'jet_form_submit',
+        form_id: inputValues['_jet_engine_booking_form_id'],
+        inputs: inputValues
+      });
+    }
+  })
+</script>
