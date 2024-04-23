@@ -20,7 +20,7 @@
         return origOpen.apply(this, arguments);
       };
       xhr.send = function(data) {
-        if (requestURL.includes('?jet_form_builder_submit=submi')) {
+        if (requestURL.includes('?jet_form_builder_submit=submit&method=ajax')) {
           xhr.addEventListener('load', function() {
             if (xhr.readyState === 4) {
               if (xhr.status === 200) {
