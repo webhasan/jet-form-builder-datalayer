@@ -5,6 +5,7 @@
   * Youtube: https://youtube.com/@leomeasure
   * Email: info@leomeasure.com
   */
+
   (function() {
     var origXMLHttpRequest = XMLHttpRequest;
     XMLHttpRequest = function() {
@@ -50,50 +51,52 @@
   })();
   document.addEventListener('submit', function(event) {
     var form = event.target.closest('form.jet-form-builder.submit-type-reload');
-    var requiedError = false;
-    var formData = new FormData(form);
-    var inputValues = {};
-    formData.forEach(function(value, key) {
-      if (key) {
-        var inputField = form.querySelector('[name="' + key + '"]');
-        if (inputField) {
-          var isRequiredField = inputField.getAttribute('required');
-          if (isRequiredField) {
-            if (inputField.tagName === 'SELECT') {
-              var selectedOptionVal = inputField.options[inputField.selectedIndex].text;
-              if (!selectedOptionVal) {
+    if(form) {
+      var requiedError = false;
+      var formData = new FormData(form);
+      var inputValues = {};
+      formData.forEach(function(value, key) {
+        if (key) {
+          var inputField = form.querySelector('[name="' + key + '"]');
+          if (inputField) {
+            var isRequiredField = inputField.getAttribute('required');
+            if (isRequiredField) {
+              if (inputField.tagName === 'SELECT') {
+                var selectedOptionVal = inputField.options[inputField.selectedIndex].text;
+                if (!selectedOptionVal) {
+                  errorRequired = true;
+                }
+              } else if ((inputField.getAttribute('type') === 'email') && (!value || !value.includes('@'))) {
+                errorRequired = true;
+              } else if (!value) {
                 errorRequired = true;
               }
-            } else if ((inputField.getAttribute('type') === 'email') && (!value || !value.includes('@'))) {
-              errorRequired = true;
-            } else if (!value) {
-              errorRequired = true;
             }
           }
         }
-      }
-      inputValues[key] = value;
-    });
-    var requiredCheckboxesRadio = form.querySelectorAll('input[type="radio"][required="required"],input[type="checkbox"][required="required"]');
-    var filelsName = [];
-    requiredCheckboxesRadio.forEach(function(input) {
-      var name = input.getAttribute('name');
-      if (!filelsName.includes(name)) {
-        filelsName.push(name);
-      }
-    });
-    filelsName.forEach(function(name) {
-      if (!form.querySelector('input:checked[name="' + name + '"]')) {
-        requiedError = true;
-      }
-    })
-    if (!requiedError) {
-      window.dataLayer = window.dataLayer || [];
-      dataLayer.push({
-        event: 'jet_form_submit',
-        form_id: inputValues['_jet_engine_booking_form_id'],
-        inputs: inputValues
+        inputValues[key] = value;
       });
+      var requiredCheckboxesRadio = form.querySelectorAll('input[type="radio"][required="required"],input[type="checkbox"][required="required"]');
+      var filelsName = [];
+      requiredCheckboxesRadio.forEach(function(input) {
+        var name = input.getAttribute('name');
+        if (!filelsName.includes(name)) {
+          filelsName.push(name);
+        }
+      });
+      filelsName.forEach(function(name) {
+        if (!form.querySelector('input:checked[name="' + name + '"]')) {
+          requiedError = true;
+        }
+      })
+      if (!requiedError) {
+        window.dataLayer = window.dataLayer || [];
+        dataLayer.push({
+          event: 'jet_form_submit',
+          form_id: inputValues['_jet_engine_booking_form_id'],
+          inputs: inputValues
+        });
+      }
     }
   })
 </script>
